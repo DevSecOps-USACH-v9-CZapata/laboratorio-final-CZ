@@ -59,10 +59,10 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           
       - name: Build image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/[Instancia]:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest .
 
       - name: Push image a Docker
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz
 
     Trivy:
       needs: Docker
@@ -78,12 +78,12 @@ jobs:
             password: ${{ secrets.DOCKER_PASSWORD }}
 
         - name: Push DOcker
-          run: docker pull ${{ secrets.DOCKER_USERNAME }}/[Instancia]:latest
+          run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
 
         - name: Trivy Scan
           uses: aquasecurity/trivy-action@v0.29.0
           with:
-            image-ref: ${{ secrets.DOCKER_USERNAME }}/
+            image-ref: ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
             format: table
             severity: HIGH,CRITICAL
           continue-on-error: true        
