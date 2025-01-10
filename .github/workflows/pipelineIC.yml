@@ -10,24 +10,24 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: npm install  
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v2
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
-          java-version: '17'
-          distribution: 'adopt'
-
-      - name: Set Environment Variables
-        run: echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
+          node-version: 16
 
       - name: Analisis con SonarCloud
-        uses: SonarSource/sonarcloud-github-action@v4.0.0
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
+          projectBaseDir: .
           args: >
-            -Dsonar.projectKey="laboratorio-final-CZ"
-            -Dsonar.organization="DevSecOps-USACH-v9-CZapata"
+            -Dsonar.projectKey=laboratorio-final-CZ
+            -Dsonar.organization=DevSecOps-USACH-v9-CZapata
               
   SCA:
     runs-on: ubuntu-latest
@@ -44,3 +44,46 @@ jobs:
             --scan . \
             --out ./dependency-check-report \
             --format "ALL"
+
+  Docker:
+    needs: SCA
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          
+      - name: Build image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/[Instancia]:latest .
+
+      - name: Push image a Docker
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/
+
+    Trivy:
+      needs: Docker
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Docker Login
+          uses: docker/login-action@v3.0.0
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
+
+        - name: Push DOcker
+          run: docker pull ${{ secrets.DOCKER_USERNAME }}/[Instancia]:latest
+
+        - name: Trivy Scan
+          uses: aquasecurity/trivy-action@v0.29.0
+          with:
+            image-ref: ${{ secrets.DOCKER_USERNAME }}/
+            format: table
+            severity: HIGH,CRITICAL
+          continue-on-error: true        
