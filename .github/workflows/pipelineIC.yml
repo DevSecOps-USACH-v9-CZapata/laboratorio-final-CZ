@@ -28,8 +28,7 @@ jobs:
           args: >
             -Dsonar.projectKey="laboratorio-final-CZ"
             -Dsonar.organization="DevSecOps-USACH-v9-CZapata"
-            projectBaseDir: .
-  
+              
   SCA:
     runs-on: ubuntu-latest
     steps:
