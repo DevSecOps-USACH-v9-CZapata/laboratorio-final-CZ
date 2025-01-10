@@ -24,10 +24,9 @@ jobs:
       - name: Validando existencia de proyecto en SonarCloud
         id: validateProjectOnSonar
         run: |
-          pwd
-          ls -R
           set +e
-          curl -f -X POST -u '${{ secrets.SONAR_TOKEN }}:' 'https://sonarcloud.io/api/projects/create' -d 'name=${{ github.event.repository.name }}' -d 'project=${{ github.event.repository.name }}' -d 'organization=DevSecOps-USACH-v9-CZapata' -d 'visibility=public'
+          #curl -f -X POST -u '${{ secrets.SONAR_TOKEN }}:' 'https://sonarcloud.io/api/projects/create' -d 'name=${{ github.event.repository.name }}' -d 'project=${{ github.event.repository.name }}' -d 'organization=DevSecOps-USACH-v9-CZapata' -d 'visibility=public'
+          curl -u "${{ secrets.SONAR_TOKEN }}" -X POST "https://sonarcloud.io/api/project_create?project=${{ github.event.repository.name }}&organization=DevSecOps-USACH-v9-CZapata"
           if [ $? -ne 0 ]; then
             echo "Proyecto ya existe en Sonarcloud"
             echo "project_created=false" >> $GITHUB_ENV
@@ -39,4 +38,19 @@ jobs:
             echo "project_created=true" >> $GITHUB_ENV
           fi
           set -e
+  
+  SCA:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
+      - name: OWASP Dependency Check
+        run: |
+          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
+          unzip dependency-check.zip -d $HOME/dependency-check
+          $HOME/dependency-check/bin/dependency-check.sh \
+            --project "laboratorio-final-CZ" \
+            --scan . \
+            --out ./dependency-check-report \
+            --format "ALL"
