@@ -25,7 +25,8 @@ jobs:
         id: validateProjectOnSonar
         run: |
           set +e
-          curl -f -X POST -u '${{ secrets.SONAR_TOKEN }}:' 'https://sonarcloud.io/api/projects/create' -d 'name=${{ github.event.repository.name }}' -d 'project=${{ github.event.repository.name }}' -d 'organization=DevSecOps-USACH-v9-CZapata' -d 'visibility=public'
+          #curl -f -X POST -u '${{ secrets.SONAR_TOKEN }}:' 'https://sonarcloud.io/api/projects/create' -d 'name=${{ github.event.repository.name }}' -d 'project=${{ github.event.repository.name }}' -d 'organization=DevSecOps-USACH-v9-CZapata' -d 'visibility=public'
+          curl -u "${{ secrets.SONAR_TOKEN }}" -X POST "https://sonarcloud.io/api/project_create?project=${{ github.event.repository.name }}&organization=DevSecOps-USACH-v9-CZapata"
           if [ $? -ne 0 ]; then
             echo "Proyecto ya existe en Sonarcloud"
             echo "project_created=false" >> $GITHUB_ENV
