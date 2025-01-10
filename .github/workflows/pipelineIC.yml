@@ -2,12 +2,11 @@ name: Workflow
 on:
   push:
     branches:
-      - Work
+      - main
 
 jobs:
   SAST:
-    runs-on: ubuntu-24.04
-
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -21,26 +20,18 @@ jobs:
       - name: Set Environment Variables
         run: echo "BRANCH_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Validando existencia de proyecto en SonarCloud
-        id: validateProjectOnSonar
-        run: |
-          set +e
-          curl -f -u '${{ secrets.SONAR_TOKEN }}:' -X POST 'https://sonarcloud.io/api/projects/create' -d 'name=${{ github.event.repository.name }}' -d 'project=${{ github.event.repository.name }}' -d 'organization=DevSecOps-USACH-v9-CZapata' -d 'visibility=public'
-          #curl -u "${{ secrets.SONAR_TOKEN }}" -X POST "https://sonarcloud.io/api/project_create?project=${{ github.event.repository.name }}&organization=DevSecOps-USACH-v9-CZapata"
-          if [ $? -ne 0 ]; then
-            echo "Proyecto ya existe en Sonarcloud"
-            echo "project_created=false" >> $GITHUB_ENV
-          else
-            echo "Proyecto ${{ github.event.repository.name }} creado exitosamente en Sonarcloud"
-            
-            echo "Se establece rama main como rama por defecto"
-            curl -X POST -u '${{ secrets.SONAR_TOKEN }}:' 'https://sonarcloud.io/api/project_branches/rename' -d 'name=main' -d 'project=${{ github.event.repository.name }}'
-            echo "project_created=true" >> $GITHUB_ENV
-          fi
-          set -e
+      - name: Analisis con SonarCloud
+        uses: SonarSource/sonarcloud-github-action
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args:
+            -Dsonar.projectKey="laboratorio-final-CZ"
+            -Dsonar.organization="DevSecOps-USACH-v9-CZapata"
+            projectBaseDir: .
   
   SCA:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
