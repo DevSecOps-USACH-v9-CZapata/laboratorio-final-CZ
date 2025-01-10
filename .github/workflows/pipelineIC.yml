@@ -78,7 +78,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Push DOcker
-         run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
 
       - name: Trivy Scan
         uses: aquasecurity/trivy-action@v0.29.0
@@ -86,4 +86,4 @@ jobs:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
           format: table
           severity: HIGH,CRITICAL
-        continue-on-error: true        
+        continue-on-error: true
