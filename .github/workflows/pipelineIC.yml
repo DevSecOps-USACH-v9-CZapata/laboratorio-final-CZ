@@ -46,7 +46,7 @@ jobs:
 
       - name: OWASP DCheck
         run: |
-          curl -ssl https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
+          curl https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
           unzip dependency-check.zip -d $HOME/dependency-check
           $HOME/dependency-check/bin/dependency-check.sh \
             --project "laboratorio-final-CZ" \
