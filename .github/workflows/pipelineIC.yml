@@ -26,8 +26,8 @@ jobs:
           args: >
             -Dsonar.projectKey=laboratorio-final-CZ
             -Dsonar.organization=DevSecOps-USACH-v9-CZapata
-          env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
             
   SCA:
     needs: SAST
