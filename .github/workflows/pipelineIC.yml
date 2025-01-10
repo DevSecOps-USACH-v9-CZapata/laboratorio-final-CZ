@@ -21,15 +21,16 @@ jobs:
 
       - name: Analisis con SonarCloud
         uses: SonarSource/sonarcloud-github-action@v2
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: .
           args: >
             -Dsonar.projectKey=laboratorio-final-CZ
             -Dsonar.organization=DevSecOps-USACH-v9-CZapata
-              
+          env:
+            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
+            
   SCA:
+    needs: SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
