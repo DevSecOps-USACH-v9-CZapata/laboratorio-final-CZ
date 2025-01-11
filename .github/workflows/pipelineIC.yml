@@ -32,7 +32,7 @@ jobs:
       - name: Validar vulnerabilidades
         run: |
           echo "Analizando vuln"
-          vulnerabilities=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?componentKeys=$REPO_NAME&types=VULNERABILITY&severities=BLOCKER,CRITICAL,MAJOR" | jq -r '.total')
+          vulnerabilities=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?componentKeys=DevSecOps-USACH-v9-CZapata_laboratorio-final-CZ&types=VULNERABILITY&severities=BLOCKER,CRITICAL,MAJOR" | jq -r '.total')
           echo "Valor de variable: $vulnerabilities"
           if [ "$vulnerabilities" -gt 0 ]; then
             echo "Se encontraron $vulnerabilities vulnerabilidades críticas, altas o medias. Deteniendo pipeline."
