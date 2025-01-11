@@ -41,7 +41,7 @@ jobs:
           node-version: '16'
           
       - name: Run Snyk
-        uses: snyk/actions@v3
+        uses: snyk/actions/node@master
         with:
           args: test --json-file-output=snyk-report.json
         env:
