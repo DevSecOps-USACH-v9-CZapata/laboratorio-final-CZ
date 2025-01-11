@@ -31,13 +31,23 @@ jobs:
       
       - name: Validar vulnerabilidades
         run: |
-          echo "Analizando vuln"
-          vulnerabilities=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?componentKeys=DevSecOps-USACH-v9-CZapata_laboratorio-final-CZ&types=VULNERABILITY&severities=BLOCKER,CRITICAL,MAJOR" | jq -r '.total')
+          echo "Analizando vulnerabilidades"
+          response=$(curl -s -u "$SONAR_TOKEN:" "https://sonarcloud.io/api/issues/search?componentKeys=DevSecOps-USACH-v9-CZapata_laboratorio-final-CZ&types=VULNERABILITY&severities=BLOCKER,CRITICAL,MAJOR")
+          echo "Respuesta de SonarCloud: $response"
+          vulnerabilities=$(echo "$response" | jq -r '.total // 0')
+          if [[ ! "$vulnerabilities" =~ ^[0-9]+$ ]]; then
+            echo "La variable vulnerabilities no contiene un número válido. Valor recibido: '$vulnerabilities'"
+            exit 1
+          fi
           echo "Valor de variable: $vulnerabilities"
+
+          # Verificar si se encontraron vulnerabilidades
           if [ "$vulnerabilities" -gt 0 ]; then
             echo "Se encontraron $vulnerabilities vulnerabilidades críticas, altas o medias. Deteniendo pipeline."
-            echo "--Descomentar para prueba real, continuamos.."
-            #exit 1
+          # Descomenta para detener el pipeline
+           exit 1
+          else
+            echo "No se encontraron vulnerabilidades críticas, altas o medias."
           fi
 
   SCA:
