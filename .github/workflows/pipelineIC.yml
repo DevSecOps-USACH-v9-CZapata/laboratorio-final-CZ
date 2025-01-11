@@ -24,36 +24,50 @@ jobs:
         with:
           projectBaseDir: .
           args: >
-            -Dsonar.projectKey=DevSecOps-USACH-v9-CZapata_laboratorio-final-CZ
-            -Dsonar.organization=devsecops-usach-v9-czapata
+            -Dsonar.projectKey=laboratorio-final-CZ
+            -Dsonar.organization=DevSecOps-USACH-v9-CZapata
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
-            
   SCA:
     needs: SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: OWASP Dependency Check
-        run: |
-          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
-          unzip dependency-check.zip -d $HOME/dependency-check
+      - name: Run Dependency-Check
+        uses: dependency-check/dependency-check-action@v4
+        with:
+          project: "laboratorio-final-CZ"
+          scan: "."
+          format: "ALL"
+          failOnCVSS: 8
           
-      - name: Debug Dependency Check
-        run: ls -l $HOME/dependency-check/dependency-check/bin
-
-      - name: Make dependency-check.sh executable
-        run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
-
-      - name: Run Dependency Check
-        run: |
-          $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
-            --project "laboratorio-final-CZ" \
-            --scan . \
-            --out ./dependency-check-report \
-            --format "ALL"
+    
+#  SCA:
+#    needs: SAST
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: OWASP Dependency Check
+#        run: |
+#          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
+#          unzip dependency-check.zip -d $HOME/dependency-check
+#          
+#      - name: Debug Dependency Check
+#        run: ls -l $HOME/dependency-check/dependency-check/bin
+#
+#      - name: Make dependency-check.sh executable
+#        run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
+#
+#      - name: Run Dependency Check
+#        run: |
+#          $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
+#            --project "laboratorio-final-CZ" \
+#            --scan . \
+#            --out ./dependency-check-report \
+#            --format "ALL"
 
   Docker:
     needs: SCA
@@ -91,7 +105,7 @@ jobs:
         run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
 
       - name: Trivy Scan
-        uses: aquasecurity/trivy-action@v0.29.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
           format: table
