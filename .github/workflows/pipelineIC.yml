@@ -125,4 +125,5 @@ jobs:
           image-ref: ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
           format: table
           severity: HIGH,CRITICAL
+
         continue-on-error: true
