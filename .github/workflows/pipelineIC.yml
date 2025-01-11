@@ -25,7 +25,7 @@ jobs:
           projectBaseDir: .
           args: >
             -Dsonar.projectKey=DevSecOps-USACH-v9-CZapata_laboratorio-final-CZ
-            -Dsonar.organization=DevSecOps-USACH-v9-CZapata
+            -Dsonar.organization=devsecops-usach-v9-czapata
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
             
