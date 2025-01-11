@@ -28,9 +28,32 @@ jobs:
             -Dsonar.organization=devsecops-usach-v9-czapata
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
-    
-  SCA:
+  SNYK:
     needs: SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          
+      - name: Run Snyk
+        uses: snyk/actions@v3
+        with:
+            args: test --json-file-output=snyk-report.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Upload Snyk Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: snyk-report
+          path: snyk-report.json
+          
+  SCA:
+    needs: SNYK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
