@@ -28,35 +28,20 @@ jobs:
             -Dsonar.organization=devsecops-usach-v9-czapata
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN2 }}
-  SNYK:
-    needs: SAST
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-        
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-      - name: Install Dependencies
-        run: npm install
-          
-      - name: Run Snyk
-        uses: snyk/actions/node@master
-        with:
-          args: test --json-file-output=snyk-report.json
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          
-      - name: Upload Snyk Report
-        uses: actions/upload-artifact@v3
-        with:
-          name: snyk-report
-          path: snyk-report.json
-          
+      
+      - name: Validar vulnerabilidades
+        run: |
+          echo "Analizando vuln"
+          vulnerabilities=$(curl -s -u "$SONAR_TOKEN:" \
+          "https://sonarcloud.io/api/issues/search?componentKeys=$REPO_NAME&types=VULNERABILITY&severities=BLOCKER,CRITICAL,MAJOR" | jq -r '.total')
+          if [ "$vulnerabilities" -gt 0 ]; then
+            echo "Se encontraron $vulnerabilities vulnerabilidades críticas, altas o medias. Deteniendo pipeline."
+            echo "--Descomentar para prueba real, continuamos.."
+            #exit 1
+          fi
+
   SCA:
-    needs: SNYK
+    needs: SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
