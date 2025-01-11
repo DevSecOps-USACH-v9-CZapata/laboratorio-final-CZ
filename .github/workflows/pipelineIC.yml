@@ -43,9 +43,10 @@ jobs:
       - name: Run Snyk
         uses: snyk/actions@v3
         with:
-            args: test --json-file-output=snyk-report.json
+          args: test --json-file-output=snyk-report.json
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          
       - name: Upload Snyk Report
         uses: actions/upload-artifact@v3
         with:
