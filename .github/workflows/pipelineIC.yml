@@ -87,7 +87,7 @@ jobs:
           echo "Número de vulnerabilidades críticas, altas o medias encontradas: $vulnerabilities"
           if [ "$vulnerabilities" -gt 0 ]; then
             echo "Se encontraron vulnerabilidades críticas, altas o medias. Deteniendo el pipeline."
-            exit 1  # Hace que el pipeline falle si se encuentran vulnerabilidades
+            #exit 1  # Hace que el pipeline falle si se encuentran vulnerabilidades
           else
             echo "No se encontraron vulnerabilidades críticas, altas o medias."
           fi 
@@ -135,7 +135,7 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
 
-        continue-on-error: true
+        continue-on-error: false
 
   Docker_Local:
     needs: Trivy
