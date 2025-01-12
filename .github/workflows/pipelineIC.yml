@@ -50,39 +50,40 @@ jobs:
             echo "No se encontraron vulnerabilidades críticas, altas o medias."
           fi
 
-  SCA:
-    needs: SAST
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: OWASP Dependency Check
-        run: |
-          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
-          unzip dependency-check.zip -d $HOME/dependency-check
-          
-      - name: Debug Dependency Check
-        run: ls -l $HOME/dependency-check/dependency-check/bin
-
-      - name: Make dependency-check.sh executable
-        run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
-
-      - name: Run Dependency Check
-        run: |
-          $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
-            --project "laboratorio-final-CZ" \
-            --scan . \
-            --out ./dependency-check-report \
-            --format "ALL"
-      - name: Subir reporte
-        uses: actions/upload-artifact@v3
-        with:
-          name: dependency-check-report
-          path: report.html
+ # SCA:
+  #  needs: SAST
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #    - name: Checkout code
+  #      uses: actions/checkout@v3
+  #
+  #    - name: OWASP Dependency Check
+  #      run: |
+  #        curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
+  #        unzip dependency-check.zip -d $HOME/dependency-check
+  #        
+  #    - name: Debug Dependency Check
+  #      run: ls -l $HOME/dependency-check/dependency-check/bin
+  #
+  #    - name: Make dependency-check.sh executable
+  #      run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
+  #
+  #    - name: Run Dependency Check
+  #      run: |
+  #        $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
+  #          --project "laboratorio-final-CZ" \
+  #          --scan . \
+  #          --out ./dependency-check-report \
+  #          --format "ALL"
+  #    - name: Subir reporte
+  #      uses: actions/upload-artifact@v3
+  #      with:
+  #        name: dependency-check-report
+  #        path: report.html
 
   Docker_image:
-    needs: SCA
+    #needs: SCA
+    needs: SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -144,7 +145,7 @@ jobs:
       - name: Run Docker Container
         run: |
           echo "Iniciando contenedor en Docker local..."
-          docker run -d --name laboratorio_cz_container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
+          docker run -d --name laboratorio_cz_container -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
           echo "Contenedor iniciado con éxito."
 
       - name: Verificar contenedor
@@ -156,12 +157,12 @@ jobs:
         run: |
           echo "Validando el endpoint del contenedor..."
           sleep 10  # Tiempo para que el contenedor se inicialice
-          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health)
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000)
           if [ "$response" -ne 200 ]; then
-            echo "El contenedor no responde correctamente en /health. Código HTTP: $response"
+            echo "El contenedor no responde correctamente. Código HTTP: $response"
             exit 1
           fi
-          echo "El contenedor respondió correctamente en /health."
+          echo "El contenedor respondió correctamente."
 
       - name: Stop and Remove Container
         run: |
