@@ -50,40 +50,51 @@ jobs:
             echo "No se encontraron vulnerabilidades críticas, altas o medias."
           fi
 
- # SCA:
-  #  needs: SAST
-  #  runs-on: ubuntu-latest
-  #  steps:
-  #    - name: Checkout code
-  #      uses: actions/checkout@v3
-  #
-  #    - name: OWASP Dependency Check
-  #      run: |
-  #        curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
-  #        unzip dependency-check.zip -d $HOME/dependency-check
-  #        
-  #    - name: Debug Dependency Check
-  #      run: ls -l $HOME/dependency-check/dependency-check/bin
-  #
-  #    - name: Make dependency-check.sh executable
-  #      run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
-  #
-  #    - name: Run Dependency Check
-  #      run: |
-  #        $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
-  #          --project "laboratorio-final-CZ" \
-  #          --scan . \
-  #          --out ./dependency-check-report \
-  #          --format "ALL"
-  #    - name: Subir reporte
-  #      uses: actions/upload-artifact@v3
-  #      with:
-  #        name: dependency-check-report
-  #        path: report.html
+  SCA:
+    needs: SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+  
+      - name: OWASP Dependency Check
+        run: |
+          curl -L https://github.com/jeremylong/DependencyCheck/releases/download/v11.1.1/dependency-check-11.1.1-release.zip -o dependency-check.zip
+          unzip dependency-check.zip -d $HOME/dependency-check
+          
+      - name: Debug Dependency Check
+        run: ls -l $HOME/dependency-check/dependency-check/bin
+  
+      - name: Make dependency-check.sh executable
+        run: chmod +x $HOME/dependency-check/dependency-check/bin/dependency-check.sh
+  
+      - name: Run Dependency Check
+        run: |
+          $HOME/dependency-check/dependency-check/bin/dependency-check.sh \
+            --project "laboratorio-final-CZ" \
+            --scan . \
+            --out ./dependency-check-report \
+            --format "ALL"
+      - name: Subir reporte
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-check-report
+          path: ./dependency-check-report/*.html
+      - name: Validar vulnerabilidades de dependencias
+        run: |
+          # Verifica si existen vulnerabilidades críticas, altas o medias en el reporte generado
+          vulnerabilities=$(grep -E 'CRITICAL|HIGH|MEDIUM' ./dependency-check-report/*.html | wc -l)
+          echo "Número de vulnerabilidades críticas, altas o medias encontradas: $vulnerabilities"
+          if [ "$vulnerabilities" -gt 0 ]; then
+            echo "Se encontraron vulnerabilidades críticas, altas o medias. Deteniendo el pipeline."
+            exit 1  # Hace que el pipeline falle si se encuentran vulnerabilidades
+          else
+            echo "No se encontraron vulnerabilidades críticas, altas o medias."
+          fi 
 
   Docker_image:
-    #needs: SCA
-    needs: SAST
+    needs: SCA
+    #needs: SAST
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -163,7 +174,12 @@ jobs:
             exit 1
           fi
           echo "El contenedor respondió correctamente."
-
+      - name: Mostrar curl de sitio
+        run: |
+          echo "Inicio de website"
+          curl  http://localhost:3000
+          echo "Fin de website :D"
+          
       - name: Stop and Remove Container
         run: |
           echo "Deteniendo y eliminando el contenedor..."
