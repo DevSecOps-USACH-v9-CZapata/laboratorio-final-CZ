@@ -127,7 +127,14 @@ jobs:
 
       - name: Pull Docker Image
         run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
-
+        
+      - name: Instalar Trivy
+        run: |
+          echo "Instalando Trivy..."
+          sudo apt-get update && sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.58.1/trivy_0.58.1_Linux-32bit.deb
+          sudo dpkg -i trivy_0.58.1_Linux-32bit.deb
+        
       - name: Trivy Scan
         id: trivy-scan
         run: |
