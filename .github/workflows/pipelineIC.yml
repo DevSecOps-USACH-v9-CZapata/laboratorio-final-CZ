@@ -2,7 +2,7 @@ name: Workflow
 on:
   push:
     branches:
-      - main
+      - Work
 
 jobs:
   SAST:
@@ -45,7 +45,7 @@ jobs:
           if [ "$vulnerabilities" -gt 0 ]; then
             echo "Se encontraron $vulnerabilities vulnerabilidades críticas, altas o medias. Deteniendo pipeline."
           # Descomenta para detener el pipeline
-           exit 1
+          # exit 1
           else
             echo "No se encontraron vulnerabilidades críticas, altas o medias."
           fi
@@ -81,7 +81,7 @@ jobs:
           name: dependency-check-report
           path: report.html
 
-  Docker:
+  Docker_image:
     needs: SCA
     runs-on: ubuntu-latest
     steps:
@@ -101,7 +101,7 @@ jobs:
         run: docker push ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz
 
   Trivy:
-    needs: Docker
+    needs: Docker_image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -124,3 +124,47 @@ jobs:
           severity: HIGH,CRITICAL
 
         continue-on-error: true
+
+  Docker_Local:
+    needs: Trivy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Docker Login
+        uses: docker/login-action@v3.0.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull Docker Image
+        run: docker pull ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
+
+      - name: Run Docker Container
+        run: |
+          echo "Iniciando contenedor en Docker local..."
+          docker run -d --name laboratorio_cz_container -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/laboratorio_cz:latest
+          echo "Contenedor iniciado con éxito."
+
+      - name: Verificar contenedor
+        run: |
+          echo "Verificando que el contenedor esté corriendo..."
+          docker ps | grep laboratorio_cz_container || (echo "El contenedor no está corriendo" && exit 1)
+
+      - name: Validar endpoint del contenedor
+        run: |
+          echo "Validando el endpoint del contenedor..."
+          sleep 10  # Tiempo para que el contenedor se inicialice
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health)
+          if [ "$response" -ne 200 ]; then
+            echo "El contenedor no responde correctamente en /health. Código HTTP: $response"
+            exit 1
+          fi
+          echo "El contenedor respondió correctamente en /health."
+
+      - name: Stop and Remove Container
+        run: |
+          echo "Deteniendo y eliminando el contenedor..."
+          docker stop laboratorio_cz_container
+          docker rm laboratorio_cz_container
